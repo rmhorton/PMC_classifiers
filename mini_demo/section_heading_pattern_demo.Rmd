@@ -1,0 +1,216 @@
+---
+title: "Training Classifiers on Section Heading Patterns"
+author: "Bob"
+date: "2024-04-22"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Using logistic regression classifier coefficients as a search vector
+
+This document demonstrates two main points:
+
+* Logistic regression text classifiers are useful and practical.
+  - Semantic vectors make powerful predictive features features.
+  - Labels mined from section headings can be used to identify a wide variety of topics.
+* Model scoring can be framed as vector search.
+  - We get the same ranking by vector similarity to the coefficient vector as we do from scoring with the model.
+
+Database search is a theme here in that sometimes mined labels might only apply to a small fraction of documents, so we need to search through a large database of examples to find enough cases to supply training and test sets.
+
+```{r libraries, warning=FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(glmnet)
+library(doMC)
+library(ROCR)
+
+DATA_DIR <- 'demo_data' # "/Volumes/UBUNTU\ 22_0/data/R_medicine/"
+
+PRELIMINARY_MODELS_FILE <- "preliminary_models.Rds"
+
+# Functions
+plot_multiple_roc_curves <- function(sft_list){
+  # sft_list: key=target name, value=dataframe with scores and flags
+  targets = names(sft_list)
+  colors <- rainbow(length(targets), end=2/3, s=0.8, v=0.8)
+  plot(c(0,1), c(0,1), type='n', 
+       xlab="False Positive Rate", ylab="True Positive Rate",
+       main="ROC Curves", asp=1)
+  abline(0, 1, col='lightgray', lty=2)
+  text_x <- 0.95
+  text_y <- 0.5
+  text_step <- 0.07
+  text(text_x, text_y, "AUC", adj=1)
+  for (i in seq_along(targets)){
+    target <- targets[[i]]
+    sft <- sft_list[[target]]
+    pred <- prediction(sft[['scores']], sft[['flags']])
+    perf <- performance(pred, "tpr", "fpr")
+    lines(perf@x.values[[1]], perf@y.values[[1]], lwd=2, col=colors[[i]])
+    
+    auc <- performance(pred, 'auc')@y.values[[1]]
+    text(text_x, text_y - text_step * i, 
+         sprintf("%s: %0.3f", target, auc),
+         col=colors[[i]], adj=1)
+    
+  }
+}
+
+# pgvector functions from https://github.com/pgvector/pgvector-r/blob/master/dbx/example.R
+pgvector.serialize <- function(v) {
+  # stopifnot(is.numeric(v))
+  paste0("[", paste(v, collapse=","), "]")
+}
+
+pgvector.unserialize <- function(v) {
+  lapply(strsplit(substring(v, 2, nchar(v) - 1), ","), as.numeric)
+}
+```
+
+
+
+```{r training_and_test_sets}
+
+training_set <- bind_rows(
+  readRDS(file.path(DATA_DIR, 'data_sample_block_01.Rds'))
+  , readRDS(file.path(DATA_DIR, 'data_sample_block_02.Rds'))
+  , readRDS(file.path(DATA_DIR, 'data_sample_block_03.Rds'))
+)
+
+test_set <-  bind_rows(
+  readRDS(file.path(DATA_DIR, 'data_sample_block_04.Rds'))
+  , readRDS(file.path(DATA_DIR, 'data_sample_block_05.Rds'))
+)
+
+patterns <- list(
+  TITLE = '^title$',
+  METHODS = '.*methods',  # includes "Materials and Methods"
+  RESULTS = 'results.*',  # includes "Results and Discussion"
+  CONCLUSION = '^conclusion', # Any section path that starts with "Conclusion"
+  DISCUSSION = 'discussion',  # includes "Results and Discussion"
+  ADVERSE_EVENTS = '.*adverse.*' # any section path with the term 'adverse events'.
+)
+
+X_train <- training_set[['vector']] %>% pgvector.unserialize %>% do.call('rbind', .)
+X_test <- test_set[['vector']] %>% pgvector.unserialize %>% do.call('rbind', .)
+
+
+flag_pattern <- function(pattern, text)
+  pattern %>% grepl(text, ignore.case=TRUE) %>% as.numeric
+
+
+flags_train <- patterns %>% lapply(flag_pattern, training_set[['section_path']]) %>% data.frame
+
+flags_test <- patterns %>% lapply(flag_pattern, test_set[['section_path']]) %>% data.frame
+
+cat("Positive cases in training set:")
+flags_train %>% colSums %>% print
+
+cat("Positive cases in test set:")
+flags_test %>% colSums %>% print
+
+```
+
+
+```{r train_models}
+fit_model_for_pattern <- function(pattern_name)
+  cv.glmnet(x=X_train, y=flags_train[[pattern_name]], family='binomial', alpha=0,
+            type.measure='auc', nfolds=10, parallel=TRUE)
+
+registerDoMC(cores = 10)
+
+
+if (file.exists(PRELIMINARY_MODELS_FILE)){
+  clf_list <- readRDS(PRELIMINARY_MODELS_FILE)
+} else {
+  clf_list <- names(patterns) %>% setNames(nm=.) %>% lapply(fit_model_for_pattern)
+  saveRDS(clf_list, PRELIMINARY_MODELS_FILE)
+}
+
+
+```
+
+```{r model_scores}
+# get scores as vector without dimnames
+get_scores <- function(clf) predict(clf, newx=X_test)[,1] 
+
+scores_test <- clf_list %>% lapply(get_scores) %>% as.data.frame
+
+cor(scores_test)
+```
+
+```{r plot_roc_curves, fig.height=6, fig.width=6}
+
+scores_and_flags_for_target <- flags_test %>% 
+  names %>% setNames(nm=.) %>% 
+  lapply(function(nm) data.frame(target=nm, scores=scores_test[[nm]], flags=flags_test[[nm]]))
+
+
+plot_multiple_roc_curves(scores_and_flags_for_target)
+
+```
+
+If our pattern misses some examples (like "Results and Discussion" not being counted as "Results" or "Discussion", or if it is counted as both) how would that affect our estimated classifier performance?
+
+
+
+# Extract classifier parameters into a table.
+
+```{r extract_classifier_parameters_table}
+
+
+get_parameter_row <- function(clf){
+  vector_length <- function(v) sqrt(sum(v*v))
+  
+  par <- clf %>% coef %>% as.matrix %>% '['(,1)
+  intercept <- par[[1]]
+  beta <- par[-1]
+  beta_length <- vector_length(beta)
+  unit_beta_str <- (beta/beta_length) %>% pgvector.serialize
+  list(intercept=intercept, beta_length=beta_length, unit_beta=unit_beta_str)
+}
+
+
+coef_df <- clf_list %>% lapply(get_parameter_row) %>% 
+  bind_rows %>% bind_cols(target=names(clf_list), .)
+
+coef_df %>% tibble
+```
+
+# We can find the best matches using vector search instead of prediction
+
+## Ranking by prediction
+
+```{r ranking_by_prediction}
+clf_name <- 'ADVERSE_EVENTS'
+keep_cols <- c('pmid', 'paragraph_number', 'section_path', 'text')
+
+top_by_prediction <- test_set[order(scores_test[[clf_name]], decreasing=TRUE), keep_cols] %>% head
+knitr::kable(top_by_prediction, caption="Top matches by prediction")
+
+```
+
+# Ranking by vector similarity
+
+```{r ranking_by_vector_similarity}
+M_coef <- coef_df[['unit_beta']] %>% pgvector.unserialize %>% do.call('cbind', .)
+
+vector_similarity <- X_test %*% M_coef
+
+similarity_col <- vector_similarity[ , which(coef_df$target == clf_name)]
+top_by_vector_similarity <- test_set[order(similarity_col, decreasing=TRUE), keep_cols] %>% head
+knitr::kable(top_by_vector_similarity, caption="Top matches by vector similarity")
+
+```
+```{r similarity_vs_scores}
+scores <- scores_test[[clf_name]]
+plot(similarity_col, scores, main=clf_name)
+```
+
+To Do:
+
+* Reproduce predicted probability using coefficients, intercept, scaling factor, and squashing function.
