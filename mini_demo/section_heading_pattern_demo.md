@@ -88,7 +88,7 @@ patterns <- list(
   RESULTS = 'results.*',  # includes "Results and Discussion"
   CONCLUSION = '^conclusion', # Any section path that starts with "Conclusion"
   DISCUSSION = 'discussion',  # includes "Results and Discussion"
-  ADVERSE_EVENTS = '.*adverse.*' # any section path with the term 'adverse events'.
+  ADVERSE_EVENTS = '.*adverse.*' # any section path with the term 'adverse'.
 )
 
 X_train <- training_set[['vector']] %>% pgvector.unserialize %>% do.call('rbind', .)
