@@ -1,6 +1,6 @@
 # Demo on small dataset
 
-To run this mini-demo yourself, either
+To run this mini-demo yourself, either:
 
 Download the Rmarkdown file and the five RDS files in the demo_data directory, 
 
