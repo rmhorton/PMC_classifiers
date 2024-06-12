@@ -1,6 +1,9 @@
 # What do the classifiers actually recognize?
 
 ## Examples of articles scored with a panel of models
+
+These models were trained on MeSH terms added in 2022, and we use them on articles from 2015.
+
 [new_descriptors_2015_big_df.xlsx](https://github.com/rmhorton/PMC_classifiers/blob/main/understanding_classifiers/new_descriptors_2015_big_df.xlsx)
 
 ## Model predictions on MeSH term Definitions
