@@ -1,0 +1,294 @@
+% File: main.tex
+% AAAI25 
+% 6 Aug 2024
+% Derived from: anonymous-submission-latex-2025.tex
+\documentclass[letterpaper]{article} % DO NOT CHANGE THIS
+\usepackage[submission]{aaai25}  % DO NOT CHANGE THIS
+\usepackage{times}  % DO NOT CHANGE THIS
+\usepackage{helvet}  % DO NOT CHANGE THIS
+\usepackage{courier}  % DO NOT CHANGE THIS
+\usepackage[hyphens]{url}  % DO NOT CHANGE THIS
+\usepackage{graphicx} % DO NOT CHANGE THIS
+\urlstyle{rm} % DO NOT CHANGE THIS
+\def\UrlFont{\rm}  % DO NOT CHANGE THIS
+\usepackage{natbib}  % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\usepackage{caption} % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\frenchspacing  % DO NOT CHANGE THIS
+\setlength{\pdfpagewidth}{8.5in} % DO NOT CHANGE THIS
+\setlength{\pdfpageheight}{11in} % DO NOT CHANGE THIS
+%
+% These are recommended to typeset algorithms but not required. See the subsubsection on algorithms. Remove them if you don't have algorithms in your paper.
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% Begin RMH options
+\usepackage{amsmath}
+\setlength{\arrayrulewidth}{0.5mm}
+\setlength{\tabcolsep}{10pt}
+\renewcommand{\arraystretch}{1.5}
+% End RMH options
+
+%
+% These are are recommended to typeset listings but not required. See the subsubsection on listing. Remove this block if you don't have listings in your paper.
+\usepackage{newfloat}
+\usepackage{listings}
+\DeclareCaptionStyle{ruled}{labelfont=normalfont,labelsep=colon,strut=off} % DO NOT CHANGE THIS
+\lstset{%
+	basicstyle={\footnotesize\ttfamily},% footnotesize acceptable for monospace
+	numbers=left,numberstyle=\footnotesize,xleftmargin=2em,% show line numbers, remove this entire line if you don't want the numbers.
+	aboveskip=0pt,belowskip=0pt,%
+	showstringspaces=false,tabsize=2,breaklines=true}
+\floatstyle{ruled}
+\newfloat{listing}{tb}{lst}{}
+\floatname{listing}{Listing}
+%
+% Keep the \pdfinfo as shown here. There's no need
+% for you to add the /Title and /Author tags.
+\pdfinfo{
+/TemplateVersion (2025.1)
+}
+
+% DISALLOWED PACKAGES
+% \usepackage{authblk} -- This package is specifically forbidden
+% \usepackage{balance} -- This package is specifically forbidden
+% \usepackage{color (if used in text)
+% \usepackage{CJK} -- This package is specifically forbidden
+% \usepackage{float} -- This package is specifically forbidden
+% \usepackage{flushend} -- This package is specifically forbidden
+% \usepackage{fontenc} -- This package is specifically forbidden
+% \usepackage{fullpage} -- This package is specifically forbidden
+% \usepackage{geometry} -- This package is specifically forbidden
+% \usepackage{grffile} -- This package is specifically forbidden
+% \usepackage{hyperref} -- This package is specifically forbidden
+% \usepackage{navigator} -- This package is specifically forbidden
+% (or any other package that embeds links such as navigator or hyperref)
+% \indentfirst} -- This package is specifically forbidden
+% \layout} -- This package is specifically forbidden
+% \multicol} -- This package is specifically forbidden
+% \nameref} -- This package is specifically forbidden
+% \usepackage{savetrees} -- This package is specifically forbidden
+% \usepackage{setspace} -- This package is specifically forbidden
+% \usepackage{stfloats} -- This package is specifically forbidden
+% \usepackage{tabu} -- This package is specifically forbidden
+% \usepackage{titlesec} -- This package is specifically forbidden
+% \usepackage{tocbibind} -- This package is specifically forbidden
+% \usepackage{ulem} -- This package is specifically forbidden
+% \usepackage{wrapfig} -- This package is specifically forbidden
+% DISALLOWED COMMANDS
+% \nocopyright -- Your paper will not be published if you use this command
+% \addtolength -- This command may not be used
+% \balance -- This command may not be used
+% \baselinestretch -- Your paper will not be published if you use this command
+% \clearpage -- No page breaks of any kind may be used for the final version of your paper
+% \columnsep -- This command may not be used
+% \newpage -- No page breaks of any kind may be used for the final version of your paper
+% \pagebreak -- No page breaks of any kind may be used for the final version of your paperr
+% \pagestyle -- This command may not be used
+% \tiny -- This is not an acceptable font size.
+% \vspace{- -- No negative value may be used in proximity of a caption, figure, table, section, subsection, subsubsection, or reference
+% \vskip{- -- No negative value may be used to alter spacing above or below a caption, figure, table, section, subsection, subsubsection, or reference
+
+\setcounter{secnumdepth}{0} %May be changed to 1 or 2 if section numbers are desired.
+
+% The file aaai25.sty is the style file for AAAI Press
+% proceedings, working notes, and technical reports.
+%
+
+% Title
+
+% Your title must be in mixed case, not sentence case.
+% That means all verbs (including short verbs like be, is, using,and go),
+% nouns, adverbs, adjectives should be capitalized, including both words in hyphenated terms, while
+% articles, conjunctions, and prepositions are lower case unless they
+% directly follow a colon or long dash
+
+
+% \iffalse
+%Example, Multiple Authors, ->> remove \iffalse,\fi and place them surrounding AAAI title to use it
+\title{Safe Semantic Search with Interpretable Concept Vectors, Applied to Biomedical Literature}
+\author {
+    % Authors
+    Robert M. Horton\textsuperscript{\rm 1},
+    John Mark Agosta\textsuperscript{\rm 2},
+    John Mount\textsuperscript{\rm 1}
+}
+\affiliations {
+    % Affiliations
+    \textsuperscript{\rm 1}Win-Vector Labs, San Francisco, CA USA\\
+    \textsuperscript{\rm 2}San Jos\'e State University, San Jose, CA USA\\
+    firstAuthor@affiliation1.com, john-mark.agosta@sjsu.edu, thirdAuthor@affiliation1.com
+}
+% \fi
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    \input{abstract}
+\end{abstract}
+
+% Uncomment the following to link to your code, datasets, an extended version or similar.
+%
+% \begin{links}
+%     \link{Code}{https://aaai.org/example/code}
+%     \link{Datasets}{https://aaai.org/example/datasets}
+%     \link{Extended version}{https://aaai.org/example/extended-version}
+% \end{links}
+
+\section{Introduction}
+
+Search of text datasets using semantic embeddings uses vector similarity, exploiting  fast approximate nearest neighbor techniques. 
+This is usually done by example, where the query is the vector embedding of a representative passage of text.
+Here we demonstrate a method to construct a query vector for a general concept, rather than an example. We use a logistic regression classifier to recognize a target category, then construct a query vector from the coefficients of that classifier. We show the mathematical basis for this approach and demonstrate how it scales to large datasets using a large number of models trained on the PubMed Central collection of open-access biomedical research articles. % hosted in a PostgreSQL database with the pgvector extension.
+
+
+\subsection{Coefficient unit vectors}
+
+Cosine similarity is a commonly used metric for comparing embedding vectors. It can be computed from the dot product of the two vectors and their magnitudes:
+
+\begin{equation}
+S_C (\mathbf{A},\mathbf{B}) = {\mathbf{A} \cdot \mathbf{B} \over \|\mathbf{A}\| \|\mathbf{B}\|}
+\end{equation}
+
+Embedding vectors are commonly normalized to unit length (so that $\|\mathbf{x}\| = 1$), making the cosine similarity equal to the dot product and saving some computation. Here we exclusively use embedding vectors of unit length.
+
+Logistic regression finds the probability of a binary outcome $y$ given a vector of observed features $\mathbf{x}$ using this relationship:
+\begin{equation}
+P(y\ \mid \mathbf{x}) = \sigma ( \beta_0 + \boldsymbol\beta \cdot \mathbf{x} )
+\end{equation}
+
+\noindent where $\beta_0$ is a scalar valued intercept, $\boldsymbol\beta$ is a vector of coefficients the same length as the feature vector and $\sigma$ is the logistic sigmoid function $\sigma (t) = \frac{1}{1+e^{-t}}$.
+
+
+We can re-write this equation to use a coefficient vector of unit length:
+\begin{equation} \label{eq:beta_unit_vector}
+P(y\ \mid \mathbf{x}) = \sigma ( \beta_0 + \|\boldsymbol\beta\| \boldsymbol{b} \cdot \mathbf{x} )
+\end{equation}
+where $\boldsymbol{b}$ is the coefficient unit vector ${\boldsymbol\beta \over \|\boldsymbol\beta\|}$, and the length of the original coefficient vector ($\|\boldsymbol\beta\|$) is a scaling factor.
+
+If we train logistic regression models using embedding vectors as the only predictive features, the coefficient unit vector $\boldsymbol{b}$ is of the same dimension as the embeddings. This gives us the mechanical result that we can compute the cosine similarity between $\boldsymbol{b}$ and any feature vector by a simple dot product. It also means that $\boldsymbol{b}$ represents a point in the semantic embedding space.
+
+
+\subsection{Framing prediction as search}
+
+Equation \ref{eq:beta_unit_vector} shows that predicted probability is monotonically related to the value of the dot product. This means that the cases with the highest predicted probabilities are simply those with the highest value of the dot product, which is vector search.
+
+
+\section{PubMed and PubMed Central (PMC) data}
+
+The mid-December 2023 baseline ‘oa\_comm’ subset of open-access full-text documents was downloaded in XML format from the PMC bulk-download service~\cite{pmc_data}. Section headings and text for each paragraph were extracted using Python scripts and loaded into a Postgres database table ('paragraphs') indexed by PubMed identifier (paid) and paragraph number. Titles were given the pseudo-section heading ‘Title’, and placed as paragraph 0 of each article. Embeddings were computed in Python using the SentenceTransformers model 'all-mpnet-base-v2' and loaded into a pgvector vector(768) column of a separate table, also indexed by pmid and paragraph number.
+Other metadata, including journal information, year of publication, and MeSH term associations were extracted from the Pubmed 2023 annual baseline~\cite{pubmed_data}
+
+\section{Mining labels from section headings}
+
+The path of section and subsection headings leading to a paragraph is a kind of meta-data about the text, which distinguishes our approach from methods like Snorkel~\cite{ratber2019} that rely on finding patterns directly in the text itself. We illustrate a process of iterative improvement to develop labels leading to a model with improved classifier performance on a hand-labelled custom test set.
+
+\paragraph{\textbf{SRD evaluation use case:}}
+Scientific Response Documents (SRDs) are responses by pharmaceutical companies to unsolicited inquiries from healthcare providers that can extend beyond the product labeling. To conform with FDA Guidance on Responding to Unsolicited Requests for Off-Label Information they must be non-promotional, evidence based, and scientifically balanced. 
+PhactMI, a nonprofit collaboration of pharmaceutical company medical information (MI) leaders who oversee the MI departments that creates these documents, has developed best practices guidelines on creating SRDs~\cite{ref_SRD_guidelines}.
+as well as a rubric to quantitively assess how well an SRD adheres to these guidelines.
+Though the rubric was originally intended for human evaluation, the organization is also investigating the possibility of evaluating some aspects automatically. Several criteria can potentially be automated by text classifiers~\cite{lau_2024}. 
+Here we focus on the requirement that SRDs based on clinical trials should contain information regarding adverse effects.
+
+\begin{table}
+\caption{Iterative refinement of section heading patterns. A dataset is generated for a given pattern and used to train a classifier. 
+High-scoring paragraphs and their section headings are studied to inspire modifications to the pattern, and the process is repeated.
+Patterns were matched in PostgreSQL, and models were fitted with glmnet.cv in R.
+}\label{table:regex}
+\begin{tabular}{|l|p{1.0cm}|}
+\hline
+\textit{\textbf{Regex Pattern}} & \textit{\textbf{AUC}}\\
+\hline
+\texttt{adverse event} & 0.837 \\
+\hline
+\texttt{adverse.*(event|effect)} & 0.846 \\
+\hline
+\texttt{results.*adverse.*(event|effect)} & 0.859 \\
+\hline
+\texttt{results.*(adverse (event|effect)|tolerability|safety)} & 0.864 \\
+\hline
+\end{tabular}
+\end{table}
+
+\paragraph{\textbf{Iterative pattern improvement process:}} We use a custom training set for each label, consisting of all the paragraphs from articles having a section matching the pattern. Evaluation is done on a common test set consisting of
+hand-labelled sentences from SRDs~\cite{lau_2024}. The model developed in that study had an AUC of 0.84, using expert labelling with Prodigy. Several of the models in Table \ref{table:regex} outperform that baseline, but we do not select patterns on test set performance alone. Focusing on cases with high scores from one pattern but not another helps our experts judge which variant is preferable, even if they have similar AUCs.
+
+\section{Predicting MeSH terms}
+
+Medical Subject Heading (MeSH) descriptors are indexing terms that capture the judgement of medical informaticists about which concepts from a defined vocabulary apply to a given article. MeSH terms are applied to articles, but we are predicting them for individual paragraphs. This is an example of multiple instance learning~\cite{dietterich1997solving},~\cite{babenko_2008} where we label each paragraph from an article with its MeSH terms, and predict as well as we can. We trained paragraph level predictive models on the 1000 most common MeSH terms in our dataset using LogisticRegressionCV in Python. We find that in our current application the multiple instance effect is not too damaging; fitting paragraph level logistic regression models using document labels gives models with good ordering statistics (e.g, area under the ROC curve), and only slightly affects probability calibration at the paragraph level.
+
+\subsection{Using predictions of new MeSH terms in older literature}
+
+From a set of MeSH terms added in 2022~\cite{mesh2022} we selected 14 that fell within the domain of interest of our medical subject matter expert, and used models trained on these terms to search articles published in 2015. Several insights emerged:
+
+\noindent \textbf{\textit{Health Inequities:}} "Stronger scores are associated with excellent matches to the concept, enabling the researcher to home right in on the query of interest."
+
+\noindent \textbf{\textit{Brain-Gut Axis:}} "The highest-scoring paragraphs tended to be on topic. Many paragraphs were found with more moderate scores, and some of this content contains discussion of either brain or gut, but not both."
+
+\noindent \textbf{\textit{mRNA Vaccines:}} "The model retrieves a host of clinical trials and COVID-related data. The basic science-centered definition of this MeSH term appears to have been overwhelmed by pandemic-related realities."
+
+The first example works as expected, while the other led us to hypothesize two failure modes: an inability to represent interactions between subconcepts in \textit{Brain-Gut Axis}, and strong bias in the training data for  \textit{mRNA Vaccines}.
+
+\section{Interpretable evaluation criteria}
+
+% We have neither clean test sets for our MeSH term models (due to the multiple instance labels), nor the workforce needed to qualitatively evaluate their search results.
+% Moreover, anyone considering using these models on a dataset other than PMC would need a labelled test set reflecting the target distribution, or to do some other form of custom evaluation.
+% These approaches may be impractical for large number of MeSH term models.
+
+Here we describe two approaches to qualitative evaluation of models based on interpretable criteria that can easily be applied to large numbers of models.
+These approaches can help weed out models with biases that seem inappropriate for a particular application.
+Detailed results of these evaluations can be found on our Github repository\cite{PMC_classifiers}.
+
+\subsection{Clustering concept vectors}
+
+Concept vectors from 1014 MeSH classifiers were clustered hierarchically using the cosine distance metric and Ward's method~\cite{ward_clustering} for agglomeration. The hierarchy tree was sliced at a sequence of smaller and smaller thresholds, partitioning the concept vectors into sets of increasingly focused clusters. This generated a dataframe where each concept vector is a row, and columns indicate the clusters at the different levels. The rows were sorted by the cluster assignments in order from larget to smaller clusters, resulting in similar rows being close together. We have also included columns containing the official definition for each term as well as its mtree strings showing the terms position in the 16-dimensional knowledge graph hierarchy~\cite{meshtrees}. These results are in the file 'concept\_clusters.xlsx' in the 'understanding classifiers' directory of our Github repository.
+
+Clustering helps to reveal biases reflecting the distributional peculiarities of the PMC training data.
+For example, the nearest neighbor of \textit{Exercise} is \textit{Sedentary Behavior}, which is basically the opposite of exercise. These terms have similar vectors because the concepts tend to co-occur; in other words, paragraphs about exercise are also likely to be about sedentary behavior because studies often compare people who exercise to those who do not.
+
+Most of the concept vectors appear to fall into reasonable clusters from a biomedical perspective. For example, \textit{Software} falls into a tight cluster with \textit{Databases, Genetic} and \textit{User-Computer Interface}, which is a close sibling to a tight cluster containing \textit{Genome}, \textit{Genome-Human}, and \textit{Molecular Sequence Annotation}. As long as you are interested in software related to these domains, this concept vector may be reasonable, but for software in general it may not.
+
+Some of these biases result in concept vectors that are much more specialized than the MeSH term alone might suggest. For example the vector for \textit{Animals} is very tightly clustered with \textit{Mice}, and more broadly clustered with terms reflecting the bias of biomedical literature toward animals as experimental subjects. These relationships are not implied in the definition of the \textit{Animals} MeSH term~\cite{meshanimals}. But if you are interested in searching datasets containing passages about household pets, livestock, or exotic zoological specimens, the clustering analysis indicates that this concept vector is probably not appropriate.
+
+\subsection{Concepts versus definitions}
+
+The extensive MeSH documentation makes it possible to apply another general approach to characterizing our panel of 1014 MeSH concept vectors; we use each of them to score all 30598 definitions in a MeSH term dictionary by similarity, then rank the definitions by this score for each concept. We can summarize these results by the rank each model gives to its own definition. For 14.2\% of our concept vectors the definition with the highest score is the one for the term the model was trained to recognize, and over 50\% of the vectors ranked their own definition in the top 12~\cite{definitionranks}. This simple analysis identifies a substantial fraction of the concept vectors that are not well described by the corresponding definition. Such mismatches could be due to biases in the training data (as described above for \textit{Animals}), or inadequate definitions (the most extreme examples being terms for which no definitions are provides, which include \textit{Male} and \textit{Female}). It may require domain expertise to characterize these biases, or to construct better definitions. However, the good news is that we have trained and documented a large number of concept vectors that do in fact appear to target the MeSH term as described by its definition.
+
+\section{Conclusions and future directions}
+
+Concept vectors are points in an embedding space. 
+We have shown how to compute them by fitting linear models and extracting coefficients.
+These vectors have meaning to the extent that points in the space have meaning.
+Embedding both documents and concepts in the same vector space allows fast retrieval both from concepts to instances (finding documents about a concept) and from instances to concepts (finding the concepts in a document).
+
+PubMed Central is a vast data resource for training interpretable text classifiers.
+We have shown that matching patterns to section headings is a fast and flexible way to generate training data.
+%, though labelling a test set still requires investment.
+
+We can generate large numbers of concept vectors by predicting MeSH terms.
+Sometimes the concept vectors may not mean exactly what we expect from the labels, but by pooling loosely meaningful clues, relationships among points in the semantic space (clusters, for example) can provide interpretable evidence about their meanings.
+Fitting linear classifiers on a GPU should let us process datasets large enough to contain even relatively rare concepts.
+A larger collection of vectors will give us richer and more detailed associations.
+
+PubMed contains tens of thousands MeSH definitions specifically designed to be interpretable by humans.
+They can be placed in the semantic embedding space along with corpus text and concept vectors.
+Relationships to definitions provide detailed clues about the meaning and biases of concept vectors.
+
+Differences between what we expect from a label and what we get from a model reflect biases in the training set.
+We are developing more sophisticated interactive tools to help domain experts more easily explore and interpret this type of data to better understand the biases. Additionally, we are investigating approaches to extend linear models to take interactions and non-linearities into account.
+
+As a form of transfer learning, the success of using these vectors in other fields will depend on alignment between the biases in the target corpus with those in the PMC training corpus.
+By providing interpretable evidence that reveals the biases of the concept vectors we have trained on PMC, we make it easier for developers of biomedical search- and retrieval-based applications to judge whether particular concept vectors are likely to carry the intended meaning over into their target corpus.
+
+
+\appendix
+
+[Any appendix goes here]
+
+\section{Acknowledgments}
+This study was conducted entirely at the authors' expense.
+
+\bibliography{aaai25}
+
+\end{document}
