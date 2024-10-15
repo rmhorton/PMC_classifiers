@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Graph Explorer</title>
+    </head>
+   <style type="text/css"> 
+        html {background-color: #eee}
+        input[type='checkbox']{accent-color: #444; scale: 1.5}
+        #main_heading {
+            float: left;
+            position: relative;
+            width: 60%;
+            margin-left: 0; 
+            margin-right: auto;
+            text-align: center;
+        }
+        #controls_container {
+            position: relative;
+            width: 30%;
+            margin-left: auto; 
+            margin-right: 0;
+            padding: 10px;
+            border: 2px solid #003B62;
+            background-color: #B5CFE0;
+        }
+        #negative_edges {accent-color: #f00}
+        #mynetwork {width: 100%; height: 800px; border: 3px}
+    </style>
+    <body onload=init_network()>
+        <h1 id="main_heading"></h1>
+        <div id="controls_container">
+            <label>Edge set
+                <input type="range" min="1" max="2" value="1" step="1.0" class="slider" id="edge_set">
+            </label>
+            <br/>
+            <label>minimum edge weight:
+                <input type="range" min="0" max="1.0" value="0.5" step="0.01" class="slider" id="min_edge_weight">
+                <input type="text" id="min_edge_weight_display" size="3">
+            </label>
+            <br/>
+            <label for="motion"> motion:
+                <input type="checkbox" id="motion" name="motion" checked>
+            </label>
+            &nbsp;&nbsp;&nbsp;
+            <label for="negative_edges"> negative edges:
+                <input type="checkbox" id="negative_edges" name="negative_edges">
+            </label>
+
+        </div>
+        <div id="mynetwork"></div>
+        <script type="text/javascript" src="graph_data.js"></script> 
+        <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+        <script type="text/javascript">
+            const sign_color = {pos:"blue", neg:"red", zero:"black"}
+            const options = {physics:{maxVelocity: 25, minVelocity: 0.1}, layout:{improvedLayout:false}}
+            var edgeFilterSlider
+            var mynetwork
+            var edgesView
+
+            function edgesFilter(edge){ 
+                filter_me =  (edge.edgeset==edgeSetSlider.value) & (edge.value >= edgeFilterSlider.value)
+                if (!negativeEdgesCheckbox.checked){
+                    filter_me = filter_me & (edge.sign != "neg")
+                }
+                return filter_me
+            }
+            function refresh_page_data(){
+                edgesView.refresh()
+                document.getElementById("main_heading").innerHTML=DATASET_TITLES[edgeSetSlider.value - 1]
+            }
+            function init_network(){
+                document.getElementById("min_edge_weight").onchange = function(){
+                    document.getElementById("min_edge_weight_display").value = this.value
+                }
+
+                edgeFilterSlider = document.getElementById("min_edge_weight")
+                edgeFilterSlider.addEventListener("change", refresh_page_data)  // 
+                edgeFilterSlider.onchange()
+
+                edgeSetSlider = document.getElementById("edge_set")
+                edgeSetSlider.addEventListener("change", (e) => {edgesView.refresh()})
+
+                motionCheckbox = document.getElementById("motion")
+                motionCheckbox.addEventListener("change", (e) => {mynetwork.setOptions( { physics: motionCheckbox.checked } )})
+                negativeEdgesCheckbox = document.getElementById("negative_edges")
+                negativeEdgesCheckbox.addEventListener("change", (e) => {edgesView.refresh()})
+
+                // document.getElementById("main_heading").innerHTML=DATASET_TITLES[edgeSetSlider.value - 1]
+
+
+                var container = document.getElementById("mynetwork")
+                var EDGES2 = []
+                for (var i = 0; i < EDGES.length; i++) {
+                    var edge = EDGES[i]
+                    edge["value"] = Math.abs(edge["weight"])
+                    edge["title"] = "weight " + edge["weight"]
+                    edge["sign"] = (edge["weight"] < 0) ? "neg" : "pos";
+                    edge["color"] = {color: sign_color[edge["sign"]] };
+                    // edge["arrows"] = "to"
+                    EDGES2.push(edge)
+                }
+                var nodes = new vis.DataSet(NODES)
+                var edges = new vis.DataSet(EDGES2)
+                var nodesView = new vis.DataView(nodes)
+                edgesView = new vis.DataView(edges, { filter: edgesFilter })
+                var data = { nodes: nodesView, edges: edgesView }
+                mynetwork = new vis.Network(container, data, options)
+
+                refresh_page_data()
+            }
+            init_network()
+        </script>
+    </body>
+</html>
