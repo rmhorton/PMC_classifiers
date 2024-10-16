@@ -1,0 +1,188 @@
+---
+title: "concept_vs_definitions.Rmd"
+author: "Bob"
+date: "2024-10-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries}
+# setwd("~/Documents/conferences/BARUG")
+
+# if (!require("devtools")) install.packages("devtools")
+# devtools::install_github("talgalili/d3heatmap")
+# library("d3heatmap")
+
+library("dplyr")
+library("arrow")
+
+```
+
+```{r load_Data}
+MODEL_DATA_FILE <- "model_data_1014_MeSH_terms.parquet"
+DEFINITION_EMBEDDINGS_FILE <- "all_definition_embeddings.parquet"
+
+```
+
+
+```{r beta_unit_vector_matrixes}
+
+model_data <- read_parquet(MODEL_DATA_FILE) 
+  # note that the vectors are character strings
+
+vstr_to_vector <- function(vstr){
+  vstr %>% 
+    sub('[', 'c(', ., fixed=TRUE) %>% 
+    sub(']', ')', ., fixed=TRUE) %>%
+    parse(text=.) %>%
+    eval
+}
+
+M <- model_data$beta_unit_vector %>% 
+  sapply(vstr_to_vector) %>% 
+  t
+  
+dimnames(M) <- list(
+  model_data$name,
+  paste0('X', 1:768)
+)
+
+S <- M %*% t(M)
+diag(S) <- 0 # set diagonal values (all 1) to 0
+
+threshold <- 0.5
+hist(S, breaks=100)
+abline(
+  v=c(-threshold, 0, threshold),
+  col=c('blue', 'red', 'blue'), 
+  lty=3, lwd=2)
+
+# The number of edges with an absolute value above the threshold
+(sum(abs(S) > threshold) - 1014)/2
+
+pdf("similarity_matrix_heatmap.pdf", width=80, height=80, pointsize=8)
+palette <- colorRampPalette(c("red", "white", "blue"))(256)
+(hv <- heatmap(S, margins=c(10, 10), col=palette))
+dev.off()
+```
+
+
+```{r interactive_graph1}
+
+# Reformat similarities above threshold as nodes and edges of a graph.
+
+node_names <- row.names(S)[apply(S, 1, function(x){max(abs(x))}) > threshold]
+num_nodes <- length(node_names)
+
+nodes <- data.frame(
+  id=1:num_nodes, 
+  label=node_names,  # label is shown on node
+  title=node_names,  # title is shown in tooltip on mouseover
+  color='lightblue',
+  shape='ellipse'
+)
+
+# nodes[nodes$label == 'Animals',]['shape'] <- 'box'
+# nodes[nodes$label == 'Animals',]['color'] <- 'red'
+
+edge_rows <- list()
+row_id = 1
+for (i in 1:(num_nodes - 1)){
+  from_name <- node_names[[i]]
+  for (j in (i+1):num_nodes){
+    to_name <- node_names[[j]]
+    edge_weight <- S[from_name, to_name]
+    if ( abs(edge_weight) > threshold){
+      new_row <- list( from=i
+                       , to=j
+                       , weight=edge_weight
+                       , from_name=from_name
+                       , to_name=to_name
+                )
+      edge_rows[[row_id]] <- new_row
+      row_id <- row_id + 1
+    }
+  }
+}
+edges <- edge_rows %>% bind_rows
+
+edges['edgeset'] <- 1L
+
+```
+
+```{r export_json}
+library('jsonlite')
+
+dataset_titles <- c("Similarity Between Concept Vectors", "Concept Vectors vs. Definitions")
+fh <- file("graph_data.js")
+writeLines(paste0('DATASET_TITLES=', toJSON(dataset_titles),
+  "; NODES=", toJSON(nodes), 
+  "; EDGES=", toJSON(edges[c('edgeset', 'from', 'to', 'weight')])), fh)
+close(fh)
+```
+
+
+```{r definitions}
+definition_embeddings <- read_parquet(DEFINITION_EMBEDDINGS_FILE)
+
+D <- definition_embeddings$vector %>% do.call('rbind',.)
+
+definition_meshterms <- D %*% t(M)
+dimnames(definition_meshterms) <- list(
+  definition_embeddings$term,
+  model_data$name
+)
+
+dim(definition_meshterms) # [1] 30605  1014
+
+# definition is row, MeSH term is column
+definition_meshterms['Animals', 'Mice']   #  0.02812953
+definition_meshterms['Mice', 'Animals']   #  0.3144588
+definition_meshterms['Animals', 'Humans'] # -0.1068742
+definition_meshterms['Humans', 'Animals'] # -0.02417738
+
+# Find top N definitions for each MeSH term model
+get_top_scores_per_row <- function(X, N=20){
+  # X: a score matrix with named dimensions
+  # N: number of best scores to report per row
+  print( dim(X) )
+  print(length(rownames(X)))
+  topN_rows <- list()
+  for (term in rownames(X)){
+    row <- X[term,]
+    sorted <- row %>% sort(decreasing=TRUE)
+    own_rank <- which(names(sorted) == term)
+    topN <- sorted %>% head(N)
+    term_scores <- sprintf("%s (%0.3f)", names(topN), topN)
+    names(term_scores) <- paste0('rank_', 1:N)
+    topN_rows[[term]] <- c(
+      list(term=term, own_rank=own_rank), 
+      term_scores
+    )
+  }
+  return(topN_rows %>% bind_rows)
+}
+
+top_definitions_per_model <- get_top_scores_per_row(X=definition_meshterms, N=20)
+top_models_per_definition <- get_top_scores_per_row(X=t(definition_meshterms), N=20)
+
+write.csv(top_definitions_per_model, "top_definitions_per_model.csv")
+write.csv(top_models_per_definition, "top_models_per_definition.csv")
+
+
+```
+
+```{r top_definitions_per_model}
+num_models <- nrow(top_definitions_per_model)
+
+with(top_definitions_per_model, hist(own_rank, breaks=0:520, xlim=c(0, 20)))
+
+h <- with(top_definitions_per_model, hist(own_rank, breaks=0:520, plot=F))
+h$counts <- h$counts / sum(h$counts)
+plot(h, freq=TRUE, ylab="Relative Frequency", xlim=c(0, 20), ylim=c(0, 0.5))
+
+top_definitions_per_model
+```
